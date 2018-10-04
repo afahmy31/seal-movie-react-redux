@@ -1,0 +1,17 @@
+.Container {
+  margin-top: 100px;
+  position: relative;
+}
+
+.ModalTitle {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.ModalImage {
+  width: 100%;
+}
+
+.ModalText {
+  padding-left: 8px;
+}
