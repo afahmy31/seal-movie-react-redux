@@ -5,7 +5,8 @@ const initialState = {
   searchKeyword: "",
   loading: true,
   movieData: [],
-  clickedMovie: {}
+  clickedMovie: {},
+  scrolledToBottom: false
 };
 
 const reducer = (state = initialState, action) => {
@@ -24,6 +25,10 @@ const reducer = (state = initialState, action) => {
       return Object.assign({}, state, { searchKeyword: action.payload });
     case "SEARCH_LOADING":
       return Object.assign({}, state, { loading: true });
+    case "REACHED_BOTTOM":
+      return Object.assign({}, state, { scrolledToBottom: true });
+    case "SCROLL":
+      return Object.assign({}, state, { scrolledToBottom: false });
 
     default:
       return state;

@@ -7,14 +7,15 @@ import Grid from "@material-ui/core/Grid";
 import Classes from "./Container.css";
 import Typography from "@material-ui/core/Typography";
 import Modal from "@material-ui/core/Modal";
-import store from "../Store";
+import store from "../Store/store";
 import { withStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
-// API URL
-const MOST_POPULAR_MOVIES_URL =
-  "https://api.themoviedb.org/3/discover/movie?page=1&include_video=false&include_adult=false&sort_by=popularity.desc&language=en-US&api_key=767f1f983125c3765edba2d7021d9202";
+var page = 1;
+// API URLs
+const MOST_POPULAR_MOVIES_URL = `https://api.themoviedb.org/3/discover/movie?page=${page}&include_video=false&include_adult=false&sort_by=popularity.desc&language=en-US&api_key=767f1f983125c3765edba2d7021d9202`;
+
 const IMAGE_URL = "https://image.tmdb.org/t/p/w300";
 
 // styling the Modal position
@@ -41,14 +42,25 @@ const styles = theme => ({
     padding: theme.spacing.unit * 4
   }
 });
+var movieArray = [];
 
 class Container extends Component {
+  constructor(props) {
+    super(props);
+    this.handleScroll = this.handleScroll.bind(this);
+  }
+
   getMovies = URL => {
+    if (URL.includes("search")) {
+      movieArray = [];
+    }
     axios
       .get(URL)
       .then(response => {
         // handle success
-        var movieArray = response.data.results;
+        response.data.results.forEach(element => {
+          movieArray.push(element);
+        });
         this.props.store.dispatch({
           type: "GET_MOVIE_DATA",
           payload: movieArray
@@ -65,16 +77,52 @@ class Container extends Component {
   componentWillMount() {
     this.getMovies(MOST_POPULAR_MOVIES_URL);
   }
+  componentDidMount() {
+    window.addEventListener("scroll", this.handleScroll);
+  }
+  componentWillUnmount() {
+    window.removeEventListener("scroll", this.handleScroll);
+  }
 
   closeModal = () => {
     const action = { type: "OFF" };
     this.props.store.dispatch(action);
   };
 
+  handleScroll() {
+    this.props.store.dispatch({
+      type: "SCROLL"
+    });
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+      page++;
+      if (!store.getState().loading) {
+        var URL = `https://api.themoviedb.org/3/discover/movie?page=${page}&include_video=false&include_adult=false&sort_by=popularity.desc&language=en-US&api_key=767f1f983125c3765edba2d7021d9202`;
+        axios
+          .get(URL)
+          .then(response => {
+            // handle success
+            response.data.results.forEach(element => {
+              movieArray.push(element);
+            });
+            this.props.store.dispatch({
+              type: "GET_MOVIE_DATA",
+              payload: movieArray
+            });
+            this.props.store.dispatch({
+              type: "REACHED_BOTTOM"
+            });
+          })
+          .catch(function(error) {
+            // handle error
+            console.log(error);
+          });
+      }
+    }
+  }
+
   render() {
     const searchKeyword = store.getState().searchKeyword;
     const SEARCH_MOVIES_URL = `https://api.themoviedb.org/3/search/movie?api_key=767f1f983125c3765edba2d7021d9202&language=en-US&query=${searchKeyword}&page=1&include_adult=false`;
-
     const { classes } = this.props;
     const clickedMovieData = store.getState().clickedMovie;
     const modal = (
@@ -114,7 +162,7 @@ class Container extends Component {
       <Grid container justify="center" className={Classes.Container}>
         {store.getState().movieData.map((movie, i) => {
           return (
-            <Grid item lg={3} key={movie.id}>
+            <Grid item lg={3} key={movie.id} onScroll={this.handleScroll}>
               <MovieCard
                 store={store}
                 movie={movie}
@@ -129,7 +177,11 @@ class Container extends Component {
     );
 
     if (store.getState().loading && searchKeyword !== "") {
-      return this.getMovies(SEARCH_MOVIES_URL) ? grid : <Spinner className={Classes.Container}/>;
+      return this.getMovies(SEARCH_MOVIES_URL) ? (
+        grid
+      ) : (
+        <Spinner className={Classes.Container} />
+      );
     } else {
       return <Link to="/">{grid}</Link>;
     }
@@ -139,7 +191,8 @@ class Container extends Component {
 function mapStateToProps(state) {
   return {
     showModal: state.showModal,
-    loading: state.loading
+    loading: state.loading,
+    scrolledToBottom: state.scrolledToBottom
   };
 }
 

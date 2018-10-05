@@ -6,7 +6,7 @@ import CardMedia from "@material-ui/core/CardMedia";
 import Typography from "@material-ui/core/Typography";
 import { withStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
-import store from "../Store";
+import store from "../Store/store";
 import LazyLoad from "react-lazyload";
 import { Link } from "react-router-dom";
 import "./MovieCard.css";
@@ -27,10 +27,8 @@ const styles = {
 
 class MovieCard extends Component {
   clickHandler = movieItem => {
-    console.log(movieItem.target);
     const movieID = movieItem.target.id;
-    const action = { type: "ON" };
-    this.props.store.dispatch(action);
+    this.props.store.dispatch({ type: "ON" });
     const movie = store.getState().movieData.find(element => {
       if (Number(movieID) === element.id) {
         return element;
@@ -81,18 +79,5 @@ function mapStateToProps(state) {
     showModal: state.showModal
   };
 }
-
-// function mapDispatchToProps(dispatch) {
-//   return {
-//     showModal: () => {
-//       const action = { type: "ON" };
-//       dispatch(action);
-//     },
-//     hideModal: () => {
-//       const action = { type: "OFF" };
-//       dispatch(action);
-//     }
-//   };
-// }
 
 export default connect(mapStateToProps)(withStyles(styles)(MovieCard));

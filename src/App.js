@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-import Header from "./Header";
+import Header from "./Header/Header";
 import Container from "./Container/Container";
-import store from "./Store";
+import store from "./Store/store";
 import { BrowserRouter as Router,Route } from "react-router-dom";
 
 class App extends Component {
